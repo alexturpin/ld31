@@ -20,8 +20,11 @@
 			<canvas id="game"></canvas>
 		</main>
 
-		<script src="assets/js/physicsjs-full-0.6.0.min.js"></script>
+		<script src="/shared/physicsjs-full-0.6.0.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
 		<script>
+			var socket = io();
+
 			var keyMap = {
 				37: 'left',
 				38: 'up',
