@@ -1,2 +1,2 @@
-ld31
-====
+Ludum Dare 31 - Bumping Snowmen
+===============================
