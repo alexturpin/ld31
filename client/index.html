@@ -5,122 +5,49 @@
 		<meta charset="utf-8">
 
 		<style>
+			* {
+				font-family: Verdana, sans-serif;
+			}
+
 			main {
-				width: 600px;
+				width: 960px;
 				margin: 50px auto;
 			}
 
-			#game {
+			canvas {
 				border: 1px solid black;
+			}
+
+			.snowman {
+				font-size: 70px;
+			}
+
+			#game {
+				display: none;
 			}
 		</style>
 	</head>
 	<body>
 		<main>
-			<canvas id="game"></canvas>
+			<h1>Bumping Snowmen - Ludum Dare 31</h1>
+			<div id="intro">
+				<p>Hi! The goal of the game is to bump the other <span class="snowman">☃</span> off the screen, seeing as the <em>entire game is on one screen</em>.</p>
+				<p>Just fill out your name and press Play! to start. Arrow keys to move.</p>
+
+				<form id="info">
+					<input type="text" id="name" required>
+					<input type="submit" value="Play!">
+				</form>
+			</div>
+			<div id="game">
+				<canvas id="canvas" width="512" height="512"></canvas>
+				<p>Server delta update time: <span id="delta-update-time"></span>ms</p>
+				<p><label for="show-server-positions">Show server positions: </label><input type="checkbox" id="show-server-positions"></p>
+			</div>
 		</main>
 
-		<script src="/shared/physicsjs-full-0.6.0.min.js"></script>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script>
-			var socket = io();
-
-			var keyMap = {
-				37: 'left',
-				38: 'up',
-				39: 'right',
-				40: 'down'
-			};
-			var keys = {};
-
-			document.addEventListener("keydown", function(event) {
-				var key = keyMap[event.keyCode]
-				if (key) keys[key] = true;
-			});
-
-			document.addEventListener("keyup", function(event) {
-				var key = keyMap[event.keyCode]
-				if (key) keys[key] = false;
-			});
-
-			Physics(function(world){
-				var viewWidth = 512;
-				var viewHeight = 512;
-
-				var renderer = Physics.renderer('canvas', {
-					el: 'game',
-					width: viewWidth,
-					height: viewHeight,
-					meta: false, // don't display meta data
-					styles: {
-						// set colors for the circle bodies
-						'circle' : {
-							strokeStyle: '#351024',
-							lineWidth: 1,
-							fillStyle: '#d33682',
-							angleIndicator: '#351024'
-						}
-					}
-				});
-
-				// add the renderer
-				world.add(renderer);
-				// render on each step
-				world.on('step', function(){
-					world.render();
-				});
-
-				// bounds of the window
-				var viewportBounds = Physics.aabb(0, 0, viewWidth, viewHeight);
-
-				// constrain objects to these bounds
-				/*world.add(Physics.behavior('edge-collision-detection', {
-					aabb: viewportBounds,
-					restitution: 0.99,
-					cof: 0.99
-				}));*/
-
-				// add a circle
-				var player = Physics.body('circle', {
-					x: 100, // x-coordinate
-					y: 100, // y-coordinate
-					vx: 0, // velocity in x-direction
-					vy: 0, // velocity in y-direction
-					radius: 20
-				});
-
-				world.add(player);
-
-				world.add(Physics.body('circle', {
-					x: 200, // x-coordinate
-					y: 200, // y-coordinate
-					vx: 0, // velocity in x-direction
-					vy: 0, // velocity in y-direction
-					radius: 20
-				}));
-
-				// ensure objects bounce when edge collision is detected
-				world.add(Physics.behavior('body-impulse-response'));
-				world.add(Physics.behavior('body-collision-detection'));
-				world.add(Physics.behavior('sweep-prune'));
-
-				// add some gravity
-				//world.add(Physics.behavior('constant-acceleration'));
-
-				// subscribe to ticker to advance the simulation
-				Physics.util.ticker.on(function(time){
-					world.step(time);
-
-					var vector = null;
-					if (keys.up) player.accelerate(new Physics.vector(0, -0.0005));
-					if (keys.down) player.accelerate(new Physics.vector(0, 0.0005));
-					if (keys.left) player.accelerate(new Physics.vector(-0.0005, 0));
-					if (keys.right) player.accelerate(new Physics.vector(0.0005, 0));
-				});
-
-				// start the ticker
-				Physics.util.ticker.start();
-			});
-		</script>
+		<script src="/game.js"></script>
 	</body>
 </html>
