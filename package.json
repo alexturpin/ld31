@@ -1,7 +1,7 @@
 {
   "name": "bumping-snowmen",
   "version": "1.0.0",
-  "description": "Bumping Snowmen",
+  "description": "Snowmen King Of The Hill - Ludum Dare 31",
   "main": "server.js",
   "dependencies": {
     "express": "^4.10.4",

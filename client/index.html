@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Bumping Snowmen</title>
+		<title>Snowmen King Of The Hill - Ludum Dare 31</title>
 		<meta charset="utf-8">
 
 		<style>
@@ -21,14 +21,22 @@
 			#game, #debug-info {
 				display: none;
 			}
+
+			#canvas, #info {
+				float: left;
+			}
+
+			#info {
+				margin-left: 50px;
+			}
 		</style>
 	</head>
 	<body>
 		<main>
-			<h1>Bumping Snowmen - Ludum Dare 31</h1>
+			<h1>Snowmen King Of The Hill - Ludum Dare 31</h1>
 			<div id="intro">
-				<p>Hi! The goal of the game is to bump the other <span class="snowman">☃</span> off the screen, seeing as the <em>entire game is on one screen</em>.</p>
-				<p>Just fill out your name and press Play! to start. Arrow keys to move.</p>
+				<p>Be the King Of The Hill! Use the arrow keys to bump the other <span class="snowman">☃</span> off the screen, seeing as the <em>entire game is on one screen</em> (see what I did there?).</p>
+				<p>Just fill out your name and press Play! to start.</p>
 
 				<form id="info">
 					<input type="text" id="name" required>
@@ -37,13 +45,10 @@
 			</div>
 			<div id="game">
 				<canvas id="canvas" width="512" height="512"></canvas>
-				<p>
-					<label for="show-debug-info">Show debug info: </label><input type="checkbox" id="show-debug-info">
-					<pre id="debug-info">
-
-					</pre>
-				</p>
-				
+				<div id ="info">
+					<p><label for="show-debug-info">Show debug info: </label><input type="checkbox" id="show-debug-info"></p>
+					<pre id="debug-info"></pre>
+				</div>
 			</div>
 		</main>
 

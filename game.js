@@ -27,6 +27,7 @@ module.exports = function(io) {
 
 			for(var id in players) {
 				var player = players[id];
+
 				var body = player.body;
 
 				for(var direction in movementVectors) {
@@ -47,43 +48,39 @@ module.exports = function(io) {
 
 		for(var id in players) {
 			var player = players[id];
-			var body = player.body;
+
+			var timeAlive = ((Date.now() - player.startOfLife) / 1000) | 0;
 
 			var playerData = {
 				id: id,
-				x: body.state.pos.get(0),
-				y: body.state.pos.get(1)
+				x: player.body.state.pos.get(0),
+				y: player.body.state.pos.get(1),
+				label: player.info.name + " (" + timeAlive + ")"
 			};
 
 			data.push(playerData);
 		}
 
-		for(var id in io.sockets.connected) {
-			io.sockets.connected[id].volatile.emit('update', {
-				players: data
-			});
-		}
+		io.emit('update', data);
 
 		setTimeout(serverUpdate, 1000 / 22);
 	}
-	serverUpdate();
+	serverUpdate()
 
 	io.on('connection', function(socket) {
 		console.log("Client", socket.id, "connected");
-
+		
 		var body = Physics.body('circle', {
-			x: Math.random() * viewWidth,
-			y: Math.random() * viewHeight,
-			vx: 0,
-			vy: 0,
+			x: (viewWidth / 2) + Math.random() * (viewWidth / 2) * (Math.random() < 0.5 ? -1 : 1),
+			y: (viewHeight / 2) + Math.random() * (viewHeight / 2) * (Math.random() < 0.5 ? -1 : 1),
 			radius: 16
 		});
-
 		world.add(body);
-		
+
 		var player = players[socket.id] = {
 			info: socket.id,
 			movement: [],
+			startOfLife: Date.now(),
 			body: body
 		};
 
@@ -98,6 +95,7 @@ module.exports = function(io) {
 
 		socket.on('info', function(data) {
 			player.info = data;
+			player.info.name = player.info.name.substr(0, 16);
 
 			console.log("Client", socket.id, "identified as", player.info.name);
 		});

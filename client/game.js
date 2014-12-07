@@ -19,12 +19,6 @@ $("#show-debug-info").change(function() {
 });
 
 function Game(playerName) {
-	var snowman = new Image();
-	snowman.src = '/assets/img/snowman.png';
-
-	var snowOver = new Image();
-	snowOver.src = '/assets/img/snow-over.png';
-
 	var players = {},
 		viewWidth = 512;
 		viewHeight = 512;
@@ -56,24 +50,24 @@ function Game(playerName) {
 		var elapsedSeconds = ((time - start) / 1000) | 0;
 		$("pre").text("Elapsed seconds: " + elapsedSeconds + "\nUpdate delta time: " + UpdatedeltaTime + "\nLowest update delta time: " + lowestUpdateDeltaTime);
 
-
 		currentUpdateTime = Date.now();
 
-		var playersData = data.players;
-		for(var i = 0; i < playersData.length; i++) {
-			var playerData = playersData[i]
+		for(var i = 0; i < data.length; i++) {
+			var playerData = data[i]
 
 			if (!players[playerData.id]) {
 				players[playerData.id] = {
 					x: playerData.x,
 					y: playerData.y,
 					targetX: playerData.x,
-					targetY: playerData.y
+					targetY: playerData.y,
+					label: ""
 				};
 			}
 			else {
 				players[playerData.id].targetX = playerData.x;
 				players[playerData.id].targetY = playerData.y;
+				players[playerData.id].label = playerData.label;
 			}
 		}
 	});
@@ -161,6 +155,9 @@ function Game(playerName) {
 		var size = 16;
 
 		//Bottom
+		context.strokeStyle = "black";
+		context.lineWidth = 1;
+
 		context.fillStyle = 'white';
 		context.beginPath();
 		context.arc(player.x, player.y, size, 0, Math.PI * 2);
@@ -217,7 +214,13 @@ function Game(playerName) {
 		context.lineTo(player.x + (size * 1.3), player.y - (size * 1.75));
 		context.stroke();
 
+		context.font = "15px Verdana";
+		var metrics = context.measureText(player.label);
+		context.fillText(player.label, player.x - (metrics.width / 2), player.y - (size * 3));
+
 		if ($("#show-debug-info").prop("checked")) {
+			context.lineWidth = 2;
+			context.strokeStyle = 'black';
 			context.beginPath();
 			context.arc(player.targetX, player.targetY, 16, 0, Math.PI * 2);
 			context.stroke();

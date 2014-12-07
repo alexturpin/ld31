@@ -1,2 +1,2 @@
-Ludum Dare 31 - Bumping Snowmen
-===============================
+Snowmen King Of The Hill - Ludum Dare 31
+========================================
