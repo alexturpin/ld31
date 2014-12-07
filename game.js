@@ -34,16 +34,7 @@ module.exports = function(io) {
 					y = player.body.state.pos.get(1),
 					outside = distance(viewWidth / 2, viewHeight / 2, x, y) > radius + 16;
 
-				if (!player.outside && outside) { //Meaning we _just_ left
-					setTimeout(function() {
-						var coords = respawnCoordinates();
-
-						player.startOfLife = Date.now();
-						player.body.state.pos.set(coords.x, coords.y);
-						player.body.state.vel.set(0, 0);
-						player.body.state.acc.set(0, 0);
-					}, 3000);
-				}
+				if (!player.outside && outside) resetPlayer(player); //Meaning we _just_ left
 
 				player.outside = outside;
 
@@ -61,6 +52,17 @@ module.exports = function(io) {
 
 		physicsUpdate();
 	})();
+
+	function resetPlayer(player) {
+		setTimeout(function() {
+			var coords = respawnCoordinates();
+
+			player.startOfLife = Date.now();
+			player.body.state.pos.set(coords.x, coords.y);
+			player.body.state.vel.set(0, 0);
+			player.body.state.acc.set(0, 0);
+		}, 3000);
+	}
 
 	function serverUpdate() {
 		var data = [];
