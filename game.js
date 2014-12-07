@@ -6,7 +6,7 @@ module.exports = function(io) {
 		viewWidth = 512,
 		viewHeight = 512,
 		radius = viewWidth / 2,
-		acceleration = 0.0005,
+		acceleration = 0.00025,
 		movementVectors = {
 			up: new Physics.vector(0, -acceleration),
 			down: new Physics.vector(0, acceleration),
@@ -112,6 +112,7 @@ module.exports = function(io) {
 		var body = Physics.body('circle', {
 			x: coords.x,
 			y: coords.y,
+			cof: 1,
 			radius: 16
 		});
 		world.add(body);
