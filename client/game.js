@@ -82,6 +82,8 @@ function Game(playerName) {
 
 	socket.on('leave', function(id) {
 		delete players[id];
+
+		if (id == ownId) location.reload();
 	});
 
 	var movement = {},

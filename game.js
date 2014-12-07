@@ -82,6 +82,13 @@ module.exports = function(io) {
 			};
 
 			data.push(playerData);
+
+			if (Date.now() - player.lastMessage > 60000) {
+				world.removeBody(player.body);
+				delete players[id];
+
+				io.emit('leave', id);
+			}
 		}
 
 		io.emit('update', data);
@@ -122,7 +129,8 @@ module.exports = function(io) {
 			movement: [],
 			startOfLife: Date.now(),
 			outside: false,
-			body: body
+			body: body,
+			lastMessage: Date.now()
 		};
 
 		socket.on('disconnect', function() {
@@ -143,6 +151,7 @@ module.exports = function(io) {
 
 		socket.on('move', function(data) {
 			player.movement = data;
+			player.lastMessage = Date.now();
 		});
 	});
 };
