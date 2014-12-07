@@ -21,7 +21,8 @@ $("#show-debug-info").change(function() {
 function Game(playerName) {
 	var players = {},
 		viewWidth = 512;
-		viewHeight = 512;
+		viewHeight = 512,
+		lastHighScore = 0;
 
 	var socket = io(),
 		ownId;
@@ -73,6 +74,8 @@ function Game(playerName) {
 				players[playerData.id].name = playerData.name;
 				players[playerData.id].timeAlive = playerData.timeAlive;
 				players[playerData.id].outside = playerData.outside;
+
+				if (playerData.timeAlive == 0 && playerData.id == ownId && !playerData.outside) lastHighScore = 0;
 			}
 		}
 	});
@@ -182,7 +185,6 @@ function Game(playerName) {
 		context.restore();
 	}
 
-	var lastHighScore = 0;
 	function drawSnowman(player, controlling, leader, outside) {
 		var size = 16;
 
