@@ -57,6 +57,7 @@ function Game(playerName) {
 
 			if (!players[playerData.id]) {
 				players[playerData.id] = {
+					id: playerData.id,
 					x: playerData.x,
 					y: playerData.y,
 					targetX: playerData.x,
@@ -134,8 +135,17 @@ function Game(playerName) {
 
 		context.drawImage(snow, 0, 0);
 
+		//Depth sorting
+		var playersToDraw = [];
 		for(var id in players) {
-			var player = players[id];
+			playersToDraw.push(players[id]);
+		}
+		playersToDraw.sort(function(a, b) {
+			return a.y - b.y;
+		});
+
+		for(var i = 0; i < playersToDraw.length; i++) {
+			var player = playersToDraw[i];
 
 			var lerp = Math.min((time - currentUpdateTime) / (1000 / 22), 1);
 			player.x += (player.targetX - player.x) * lerp;
