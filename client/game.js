@@ -14,9 +14,18 @@ if (location.host == "localhost") {
 	$("#info").submit();
 }
 
+$("#show-debug-info").change(function() {
+	$("#debug-info").toggle($(this).prop("checked"));
+});
+
 function Game(playerName) {
-	var context = document.getElementById("canvas").getContext("2d"),
-		players = {},
+	var snowman = new Image();
+	snowman.src = '/assets/img/snowman.png';
+
+	var snowOver = new Image();
+	snowOver.src = '/assets/img/snow-over.png';
+
+	var players = {},
 		viewWidth = 512;
 		viewHeight = 512;
 
@@ -31,17 +40,28 @@ function Game(playerName) {
 	    });
 	});
 
-	var currentUpdateTime = Date.now(), previousUpdateTime, deltaUpdateTime;
+	var start = Date.now(),
+		UpdatedeltaTime,
+		previousUpdateTime = start - 45,
+		lowestUpdateDeltaTime = Infinity;
+		
+	var currentUpdateTime = 0;
 	socket.on('update', function(data) {
+		//Network debug code
 		var time = Date.now();
-		currentUpdateTime = time;
-		if (!previousUpdateTime) previousUpdateTime = time;
-		deltaUpdateTime = currentUpdateTime - previousUpdateTime;
-		previousUpdateTime = currentUpdateTime;
-		$("#delta-update-time").text(deltaUpdateTime);
+		UpdatedeltaTime = time - previousUpdateTime;
+		lowestUpdateDeltaTime = Math.min(UpdatedeltaTime, lowestUpdateDeltaTime);
+		previousUpdateTime = time;
 
-		for(var i = 0; i < data.length; i++) {
-			var playerData = data[i]
+		var elapsedSeconds = ((time - start) / 1000) | 0;
+		$("pre").text("Elapsed seconds: " + elapsedSeconds + "\nUpdate delta time: " + UpdatedeltaTime + "\nLowest update delta time: " + lowestUpdateDeltaTime);
+
+
+		currentUpdateTime = Date.now();
+
+		var playersData = data.players;
+		for(var i = 0; i < playersData.length; i++) {
+			var playerData = playersData[i]
 
 			if (!players[playerData.id]) {
 				players[playerData.id] = {
@@ -96,28 +116,111 @@ function Game(playerName) {
 		socket.emit('move', movement);
 	}
 
+	//Drawing
+	var context = document.getElementById("canvas").getContext("2d"),
+		snow = document.createElement('canvas'),
+		snowContext = snow.getContext("2d");
+
+	snow.width = viewWidth;
+	snow.height = viewHeight;
+	snowContext.fillStyle = '#e1edf6';
+
 	function draw(context, dt, time) {
 		context.clearRect(0 , 0, viewWidth, viewHeight);
+
+		context.strokeStyle = "black";
+		context.lineWidth = 1;
+
+		context.save();
+
+		context.beginPath();
+		context.arc(viewWidth / 2, viewHeight / 2, viewWidth / 2, 0, Math.PI * 2);
+		context.stroke();
+		context.clip();
+
+		context.drawImage(snow, 0, 0);
 
 		for(var id in players) {
 			var player = players[id];
 
-			var lerp = Math.min((time - currentUpdateTime) / deltaUpdateTime, 1);
+			var lerp = Math.min((time - currentUpdateTime) / (1000 / 22), 1);
 			player.x += (player.targetX - player.x) * lerp;
 			player.y += (player.targetY - player.y) * lerp;
 
-			context.fillStyle = id == ownId ? "blue" : "red";
-			context.strokeStyle = "3px solid black";
-			context.beginPath();
-			context.arc(player.x, player.y, 20, 0, Math.PI * 2);
-			context.fill();
-			context.stroke();
+			snowContext.beginPath();
+			snowContext.arc(player.x, player.y, 16, 0, Math.PI * 2);
+			snowContext.fill();
 
-			if ($("#show-server-positions").prop("checked")) {
-				context.beginPath();
-				context.arc(player.targetX, player.targetY, 10, 0, Math.PI * 2);
-				context.stroke();
-			}
+			drawSnowman(player, id == ownId);
+		}
+
+		context.restore();
+	}
+
+	function drawSnowman(player, controlling) {
+		var size = 16;
+
+		//Bottom
+		context.fillStyle = 'white';
+		context.beginPath();
+		context.arc(player.x, player.y, size, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+
+		//Body
+		context.beginPath();
+		context.arc(player.x, player.y - (size * 1.2), size * 0.8, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+
+		//Head
+		context.beginPath();
+		context.arc(player.x, player.y - (size * 2.2), size * 0.6, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+
+		//Left eye
+		context.fillStyle = 'black';
+		context.beginPath();
+		context.arc(player.x - size * 0.2, player.y - (size * 2.3), size * 0.1, 0, Math.PI * 2);
+		context.fill();
+
+		//Right eye
+		context.beginPath();
+		context.arc(player.x + size * 0.2, player.y - (size * 2.3), size * 0.1, 0, Math.PI * 2);
+		context.fill();
+
+		//Nose
+		context.fillStyle = 'orange';
+		context.beginPath();
+		context.moveTo(player.x - size * 0.1, player.y - (size * 2.1));
+		context.lineTo(player.x + size * 0.1, player.y - (size * 2.1));
+		context.lineTo(player.x + size * 0.03, player.y - (size * 1.65));
+		context.lineTo(player.x - size * 0.03, player.y - (size * 1.65));
+		context.fill();
+
+		//Buttons
+		context.fillStyle = '#303030';
+		for(var i = 0; i < 3; i++) {
+			context.beginPath();
+			context.arc(player.x, player.y - (size * (1.3 - (i * 0.6))), size * 0.1, 0, Math.PI * 2);
+			context.fill();
+		}
+
+		//Arms
+		context.strokeStyle = '#8B4513';
+		context.lineWidth = size / 8;
+		context.beginPath();
+		context.moveTo(player.x - (size * 0.7), player.y - (size * 1.25));
+		context.lineTo(player.x - (size * 1.3), player.y - (size * 1.75));
+		context.moveTo(player.x + (size * 0.7), player.y - (size * 1.25));
+		context.lineTo(player.x + (size * 1.3), player.y - (size * 1.75));
+		context.stroke();
+
+		if ($("#show-debug-info").prop("checked")) {
+			context.beginPath();
+			context.arc(player.targetX, player.targetY, 16, 0, Math.PI * 2);
+			context.stroke();
 		}
 	}
 
@@ -130,6 +233,6 @@ function Game(playerName) {
 		draw(context, dt, Date.now());
 
 		window.requestAnimationFrame(setupDraw);
-	};
-	window.requestAnimationFrame(setupDraw);
+	}
+	setupDraw();
 }

@@ -20,7 +20,7 @@ module.exports = function(io) {
 		world.add(Physics.behavior('body-collision-detection'));
 		world.add(Physics.behavior('sweep-prune'));
 
-		setInterval(function physicsUpdate() {
+		function physicsUpdate() {
 			var time = Date.now();
 
 			world.step(time);
@@ -35,10 +35,14 @@ module.exports = function(io) {
 					}
 				}
 			}
-		}, 1000 / 66);
+
+			setTimeout(physicsUpdate, 1000 / 66);
+		}
+
+		physicsUpdate();
 	})();
 
-	setInterval(function serverUpdate() {
+	function serverUpdate() {
 		var data = [];
 
 		for(var id in players) {
@@ -54,8 +58,15 @@ module.exports = function(io) {
 			data.push(playerData);
 		}
 
-		io.emit('update', data);
-	}, 1000 / 22);
+		for(var id in io.sockets.connected) {
+			io.sockets.connected[id].volatile.emit('update', {
+				players: data
+			});
+		}
+
+		setTimeout(serverUpdate, 1000 / 22);
+	}
+	serverUpdate();
 
 	io.on('connection', function(socket) {
 		console.log("Client", socket.id, "connected");
@@ -65,7 +76,7 @@ module.exports = function(io) {
 			y: Math.random() * viewHeight,
 			vx: 0,
 			vy: 0,
-			radius: 20
+			radius: 16
 		});
 
 		world.add(body);

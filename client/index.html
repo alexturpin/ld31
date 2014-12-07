@@ -14,15 +14,11 @@
 				margin: 50px auto;
 			}
 
-			canvas {
-				border: 1px solid black;
-			}
-
 			.snowman {
 				font-size: 70px;
 			}
 
-			#game {
+			#game, #debug-info {
 				display: none;
 			}
 		</style>
@@ -41,8 +37,13 @@
 			</div>
 			<div id="game">
 				<canvas id="canvas" width="512" height="512"></canvas>
-				<p>Server delta update time: <span id="delta-update-time"></span>ms</p>
-				<p><label for="show-server-positions">Show server positions: </label><input type="checkbox" id="show-server-positions"></p>
+				<p>
+					<label for="show-debug-info">Show debug info: </label><input type="checkbox" id="show-debug-info">
+					<pre id="debug-info">
+
+					</pre>
+				</p>
+				
 			</div>
 		</main>
 
