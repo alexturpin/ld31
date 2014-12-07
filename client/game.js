@@ -63,7 +63,8 @@ function Game(playerName) {
 					targetX: playerData.x,
 					targetY: playerData.y,
 					name: "",
-					timeAlive: 0
+					timeAlive: 0,
+					outside: false
 				};
 			}
 			else {
@@ -71,6 +72,7 @@ function Game(playerName) {
 				players[playerData.id].targetY = playerData.y;
 				players[playerData.id].name = playerData.name;
 				players[playerData.id].timeAlive = playerData.timeAlive;
+				players[playerData.id].outside = playerData.outside;
 			}
 		}
 	});
@@ -113,6 +115,14 @@ function Game(playerName) {
 		socket.emit('move', movement);
 	}
 
+	function distance(x1, y1, x2, y2) {
+		return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+	}
+
+	function isOutside(x, y) {
+		return distance(viewWidth / 2, viewHeight / 2, x, y) > (viewWidth / 2) + 16;
+	}
+
 	//Drawing
 	var context = document.getElementById("canvas").getContext("2d"),
 		snow = document.createElement('canvas'),
@@ -142,6 +152,8 @@ function Game(playerName) {
 		for(var id in players) {
 			playersToDraw.push(players[id]);
 			highestTimeAlive = Math.max(players[id].timeAlive, highestTimeAlive);
+
+			if (id == ownId && players[id].timeAlive) lastHighScore = Math.max(lastHighScore, players[id].timeAlive);
 		}
 		playersToDraw.sort(function(a, b) {
 			return a.y - b.y;
@@ -150,21 +162,28 @@ function Game(playerName) {
 		for(var i = 0; i < playersToDraw.length; i++) {
 			var player = playersToDraw[i];
 
-			var lerp = Math.min((time - currentUpdateTime) / (1000 / 22), 1);
-			player.x += (player.targetX - player.x) * lerp;
-			player.y += (player.targetY - player.y) * lerp;
+			if (isOutside(player.x, player.y)) {
+				player.x = player.targetX;
+				player.y = player.targetY;
+			}
+			else {
+				var lerp = Math.min((time - currentUpdateTime) / (1000 / 22), 1);
+				player.x += (player.targetX - player.x) * lerp;
+				player.y += (player.targetY - player.y) * lerp;
+			}
 
 			snowContext.beginPath();
 			snowContext.arc(player.x, player.y, 16, 0, Math.PI * 2);
 			snowContext.fill();
 
-			drawSnowman(player, player.id == ownId, player.timeAlive == highestTimeAlive);
+			drawSnowman(player, player.id == ownId, player.timeAlive == highestTimeAlive, !!player.outside);
 		}
 
 		context.restore();
 	}
 
-	function drawSnowman(player, controlling, leader) {
+	var lastHighScore = 0;
+	function drawSnowman(player, controlling, leader, outside) {
 		var size = 16;
 
 		//Bottom
@@ -230,7 +249,7 @@ function Game(playerName) {
 		if (controlling) context.fillStyle = 'blue';
 		context.font = "15px Verdana";
 		if (leader) context.font = "bold 15px Verdana";
-		var text = player.name; + " (" + player.timeAlive + ")";
+		var text = player.name + " (" + player.timeAlive + ")";
 		var metrics = context.measureText(text);
 		context.fillText(text, player.x - (metrics.width / 2), player.y - (size * 3));
 
@@ -239,6 +258,11 @@ function Game(playerName) {
 			if (leader) {
 				status = "You are the leader! " + status;
 			}
+
+			if (outside) {
+				status = "You fell outside after " + lastHighScore + " seconds! Get ready, you will be put back in the game in a few seconds..."
+			}
+
 			$("#game-status").text(status);
 		}
 
