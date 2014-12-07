@@ -55,7 +55,8 @@ module.exports = function(io) {
 				id: id,
 				x: player.body.state.pos.get(0),
 				y: player.body.state.pos.get(1),
-				label: player.info.name + " (" + timeAlive + ")"
+				name: player.info.name,
+				timeAlive: timeAlive
 			};
 
 			data.push(playerData);

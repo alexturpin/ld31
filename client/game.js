@@ -1,10 +1,10 @@
 $("#name").focus();
 
-$("#info").submit(function(event) {
+$("form").submit(function(event) {
 	event.preventDefault();
 
-	$("#intro").hide();
-	$("#game").show();
+	$("form").hide();
+	$("#debug").show();
 
 	new Game($("#name").val());
 });
@@ -48,7 +48,7 @@ function Game(playerName) {
 		previousUpdateTime = time;
 
 		var elapsedSeconds = ((time - start) / 1000) | 0;
-		$("pre").text("Elapsed seconds: " + elapsedSeconds + "\nUpdate delta time: " + UpdatedeltaTime + "\nLowest update delta time: " + lowestUpdateDeltaTime);
+		$("pre").text("Elapsed seconds: " + elapsedSeconds + "\nUpdate delta time: " + UpdatedeltaTime + "\nLowest update delta time: " + lowestUpdateDeltaTime + "\nReady state: " + socket.io.readyState);
 
 		currentUpdateTime = Date.now();
 
@@ -62,13 +62,15 @@ function Game(playerName) {
 					y: playerData.y,
 					targetX: playerData.x,
 					targetY: playerData.y,
-					label: ""
+					name: "",
+					timeAlive: 0
 				};
 			}
 			else {
 				players[playerData.id].targetX = playerData.x;
 				players[playerData.id].targetY = playerData.y;
-				players[playerData.id].label = playerData.label;
+				players[playerData.id].name = playerData.name;
+				players[playerData.id].timeAlive = playerData.timeAlive;
 			}
 		}
 	});
@@ -136,9 +138,10 @@ function Game(playerName) {
 		context.drawImage(snow, 0, 0);
 
 		//Depth sorting
-		var playersToDraw = [];
+		var playersToDraw = [], highestTimeAlive = 0;
 		for(var id in players) {
 			playersToDraw.push(players[id]);
+			highestTimeAlive = Math.max(players[id].timeAlive, highestTimeAlive);
 		}
 		playersToDraw.sort(function(a, b) {
 			return a.y - b.y;
@@ -155,13 +158,13 @@ function Game(playerName) {
 			snowContext.arc(player.x, player.y, 16, 0, Math.PI * 2);
 			snowContext.fill();
 
-			drawSnowman(player, id == ownId);
+			drawSnowman(player, player.id == ownId, player.timeAlive == highestTimeAlive);
 		}
 
 		context.restore();
 	}
 
-	function drawSnowman(player, controlling) {
+	function drawSnowman(player, controlling, leader) {
 		var size = 16;
 
 		//Bottom
@@ -224,9 +227,20 @@ function Game(playerName) {
 		context.lineTo(player.x + (size * 1.3), player.y - (size * 1.75));
 		context.stroke();
 
+		if (controlling) context.fillStyle = 'blue';
 		context.font = "15px Verdana";
-		var metrics = context.measureText(player.label);
-		context.fillText(player.label, player.x - (metrics.width / 2), player.y - (size * 3));
+		if (leader) context.font = "bold 15px Verdana";
+		var text = player.name; + " (" + player.timeAlive + ")";
+		var metrics = context.measureText(text);
+		context.fillText(text, player.x - (metrics.width / 2), player.y - (size * 3));
+
+		if (controlling) {
+			var status = "You have managed to stay alive for " + player.timeAlive + " seconds.";
+			if (leader) {
+				status = "You are the leader! " + status;
+			}
+			$("#game-status").text(status);
+		}
 
 		if ($("#show-debug-info").prop("checked")) {
 			context.lineWidth = 2;
